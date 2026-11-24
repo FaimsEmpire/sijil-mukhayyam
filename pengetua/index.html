@@ -271,6 +271,7 @@ li.item:nth-child(1){animation-delay:.02s}li.item:nth-child(2){animation-delay:.
   <div class="card">
     <h2>Apa yang <em>mahu dipaparkan</em></h2>
     <p class="help" style="margin-top:0">Nama anda sentiasa ada pada sijil. Pilih sama ada mahu tambah No. IC, nama sekolah, atau kedua-duanya.</p>
+    <div class="fw" id="wNama"><label class="lbl" for="nama">Nama pada sijil</label><input class="plain" id="nama" autocomplete="off" autocapitalize="characters"><p class="help">Betulkan ejaan nama anda jika perlu. Sijil berubah terus.</p></div>
     <div class="toggles">
       <button type="button" class="tg" id="tgIc"><span class="dot"></span>No. IC</button>
       <button type="button" class="tg on" id="tgSek"><span class="dot"></span>Nama sekolah</button>
@@ -433,7 +434,7 @@ async function draw(){
   x.drawImage(bg, 0, 0, CW, CH);
   x.textAlign = "center"; x.textBaseline = "alphabetic";
 
-  const nama = cur.d[0].toUpperCase();
+  const nama = ((cur.nama||"").trim() || cur.d[0]).toUpperCase();
   const idi = cur.showIc ? idInfo(cur.ic) : null;
   const sek = cur.showSek ? (cur.sek||"").toUpperCase().trim() : "";
 
@@ -519,8 +520,8 @@ async function pilih(d){
     }catch(e){ noteOff(); }
   }
   await fontsReady;
-  cur = {d, sek: d[1], ic: "", siri, showIc: false, showSek: true};
-  $("sek").value = d[1];
+  cur = {d, nama: d[0], sek: d[1], ic: "", siri, showIc: false, showSek: true};
+  $("sek").value = d[1]; $("nama").value = d[0];
   $("ic").value = ""; $("icMsg").textContent = ""; $("icMsg").className = "msg";
   $("tgIc").classList.remove("on"); $("tgSek").classList.add("on");
   $("wIc").hidden = true; $("wSek").hidden = false;
@@ -535,6 +536,12 @@ let t;
 $("sek").addEventListener("input", () => {
   clearTimeout(t);
   t = setTimeout(async () => { cur.sek = $("sek").value; await draw(); flash(); }, 250);
+});
+
+let tn;
+$("nama").addEventListener("input", () => {
+  clearTimeout(tn);
+  tn = setTimeout(async () => { cur.nama = $("nama").value; await draw(); flash(); }, 250);
 });
 
 function reveal(el){ el.hidden = false; el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; }
@@ -569,7 +576,7 @@ function saveBlob(blob, name){
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
 }
-function fname(ext){ return "Sijil Mukhayyam Pengetua YIK 2026 - " + cur.d[0] + "." + ext; }
+function fname(ext){ return "Sijil Mukhayyam Pengetua YIK 2026 - " + ((cur.nama||"").trim() || cur.d[0]) + "." + ext; }
 function guard(){ if(expired()){ note("Tempoh muat turun sijil telah tamat."); return false; } return true; }
 
 $("dlPng").onclick = () => { if(!guard()) return; $("cv").toBlob(b => saveBlob(b, fname("png")), "image/png"); note("Gambar sijil sedang dimuat turun."); };
